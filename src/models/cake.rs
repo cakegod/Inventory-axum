@@ -1,6 +1,7 @@
 use futures::StreamExt;
 use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
+use mongodb::results::{InsertOneResult, UpdateResult};
 use mongodb::{Client, Collection};
 use serde::{Deserialize, Serialize};
 
@@ -19,13 +20,13 @@ pub struct Cake {
 }
 
 impl Cake {
-    async fn collection(db: &Client) -> Collection<Self> {
+    fn collection(db: &Client) -> Collection<Self> {
         db.database(DATABASE_NAME)
             .collection::<Self>(PRODUCT_COLLECTION_NAME)
     }
 
     pub async fn get_all(db: &Client) -> Result<Vec<Self>, mongodb::error::Error> {
-        let cursor = Self::collection(&db).await.find(None, None).await?;
+        let cursor = Self::collection(&db).find(None, None).await?;
         let products = cursor
             .map(|product| product.unwrap())
             .collect::<Vec<Self>>()
@@ -35,31 +36,25 @@ impl Cake {
 
     pub async fn get_one(db: &Client, id: ObjectId) -> Result<Self, mongodb::error::Error> {
         let cursor = Self::collection(&db)
-            .await
             .find_one(doc! {"_id": id}, None)
             .await?;
-        let product = cursor.unwrap();
-        Ok(product)
+        Ok(cursor.unwrap())
     }
 
-    pub async fn update_one(db: &Client, id: ObjectId) -> Result<(), mongodb::error::Error> {
+    pub async fn update_one(
+        db: &Client,
+        id: ObjectId,
+        updated: Cake,
+    ) -> Result<UpdateResult, mongodb::error::Error> {
         Self::collection(&db)
+            .replace_one(doc! {"_id": id}, updated, None)
             .await
-            .update_one(
-                doc! {"_id": id},
-                doc! {"$set" : {"name": "Super cake"}},
-                None,
-            )
-            .await?;
-
-        Ok(())
     }
 
-    pub async fn add_one(db: &Client, product: Cake) -> Result<(), mongodb::error::Error> {
-        Self::collection(&db)
-            .await
-            .insert_one(product, None)
-            .await?;
-        Ok(())
+    pub async fn add_one(
+        db: &Client,
+        product: Cake,
+    ) -> Result<InsertOneResult, mongodb::error::Error> {
+        Self::collection(&db).insert_one(product, None).await
     }
 }
