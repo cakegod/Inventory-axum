@@ -51,7 +51,11 @@ pub async fn get_one(State(db): State<Client>, Id(id): Id) -> Result<Json<Cake>,
     Ok(Json(Cake::get_one(&db, id).await?))
 }
 
-pub async fn update_one(State(db): State<Client>, Id(id): Id, Form(updated): Form<Cake>) -> StatusCode {
+pub async fn update_one(
+    State(db): State<Client>,
+    Id(id): Id,
+    Form(updated): Form<Cake>,
+) -> StatusCode {
     match Cake::update_one(&db, id, updated).await {
         Ok(_) => StatusCode::OK,
         Err(_) => StatusCode::BAD_REQUEST,
@@ -61,6 +65,12 @@ pub async fn update_one(State(db): State<Client>, Id(id): Id, Form(updated): For
 pub async fn add_one(State(db): State<Client>, Form(product): Form<Cake>) -> StatusCode {
     match Cake::add_one(&db, product).await {
         Ok(_) => StatusCode::CREATED,
+        Err(_) => StatusCode::BAD_REQUEST,
+    }
+}
+pub async fn delete_one(State(db): State<Client>, Id(id): Id) -> StatusCode {
+    match Cake::delete_one(&db, id).await {
+        Ok(_) => StatusCode::ACCEPTED,
         Err(_) => StatusCode::BAD_REQUEST,
     }
 }

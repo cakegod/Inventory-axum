@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
-use mongodb::results::{InsertOneResult, UpdateResult};
+use mongodb::results::{DeleteResult, InsertOneResult, UpdateResult};
 use mongodb::{Client, Collection};
 use serde::{Deserialize, Serialize};
 
@@ -56,5 +56,14 @@ impl Cake {
         product: Cake,
     ) -> Result<InsertOneResult, mongodb::error::Error> {
         Self::collection(&db).insert_one(product, None).await
+    }
+
+    pub async fn delete_one(
+        db: &Client,
+        id: ObjectId,
+    ) -> Result<DeleteResult, mongodb::error::Error> {
+        Self::collection(&db)
+            .delete_one(doc! {"_id": id}, None)
+            .await
     }
 }

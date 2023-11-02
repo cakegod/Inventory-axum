@@ -49,7 +49,9 @@ async fn app() -> Router {
         )
         .route(
             "/products/:id",
-            get(handlers::cakes::get_one).put(handlers::cakes::update_one),
+            get(handlers::cakes::get_one)
+                .put(handlers::cakes::update_one)
+                .delete(handlers::cakes::delete_one),
         )
         .nest_service("/styles.css", ServeDir::new("assets/styles.css").clone())
         .with_state(db)
