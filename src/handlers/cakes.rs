@@ -1,16 +1,17 @@
+use std::process::id;
 use std::str::FromStr;
 
-use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    Json,
-};
+use axum::extract::Path;
+use axum::{extract::State, http::StatusCode, Form, Json};
 use mongodb::{bson::oid::ObjectId, Client};
 
 use crate::models::cake::Cake;
 
-pub async fn get_all(State(db): State<Client>) -> Json<Vec<Cake>> {
-    Json(Cake::get_all(&db).await.unwrap())
+pub async fn get_all(State(db): State<Client>) -> Result<Json<Vec<Cake>>, StatusCode> {
+    Cake::get_all(&db)
+        .await
+        .map(Json)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 pub async fn get_one(
@@ -24,4 +25,21 @@ pub async fn get_one(
         .await
         .map(Json)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}
+
+pub async fn update_one(State(db): State<Client>, Path(id): Path<String>) -> StatusCode {
+    let Ok(id) = ObjectId::from_str(&id) else {
+        return StatusCode::UNPROCESSABLE_ENTITY;
+    };
+    match Cake::update_one(&db, id).await {
+        Ok(_) => StatusCode::OK,
+        Err(_) => StatusCode::BAD_REQUEST,
+    }
+}
+
+pub async fn add_one(State(db): State<Client>, Form(product): Form<Cake>) -> StatusCode {
+    match Cake::add_one(&db, product).await {
+        Ok(_) => StatusCode::CREATED,
+        Err(_) => StatusCode::BAD_REQUEST,
+    }
 }

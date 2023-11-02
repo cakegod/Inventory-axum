@@ -8,13 +8,14 @@ use crate::{DATABASE_NAME, PRODUCT_COLLECTION_NAME};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Cake {
-    name: String,
-    description: String,
-    category: String,
-    price: u32,
-    in_stock: u32,
-    url: String,
-    _id: ObjectId,
+    pub name: String,
+    pub description: String,
+    pub category: String,
+    pub price: u32,
+    pub in_stock: u32,
+    pub url: String,
+    #[serde(skip_deserializing)]
+    pub _id: ObjectId,
 }
 
 impl Cake {
@@ -39,5 +40,26 @@ impl Cake {
             .await?;
         let product = cursor.unwrap();
         Ok(product)
+    }
+
+    pub async fn update_one(db: &Client, id: ObjectId) -> Result<(), mongodb::error::Error> {
+        Self::collection(&db)
+            .await
+            .update_one(
+                doc! {"_id": id},
+                doc! {"$set" : {"name": "Super cake"}},
+                None,
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn add_one(db: &Client, product: Cake) -> Result<(), mongodb::error::Error> {
+        Self::collection(&db)
+            .await
+            .insert_one(product, None)
+            .await?;
+        Ok(())
     }
 }
