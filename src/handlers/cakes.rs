@@ -1,9 +1,13 @@
 use std::str::FromStr;
 
-use axum::extract::{FromRequestParts, Path};
-use axum::http::request::Parts;
-use axum::response::IntoResponse;
-use axum::{async_trait, extract::State, http::StatusCode, Form, Json, RequestPartsExt};
+use axum::{
+    async_trait,
+    extract::State,
+    extract::{FromRequestParts, Path},
+    http::request::Parts,
+    http::StatusCode,
+    Form, Json, RequestPartsExt,
+};
 use mongodb::{bson::oid::ObjectId, Client};
 
 use crate::models::cake::Cake;
@@ -22,33 +26,27 @@ where
             .extract::<Path<String>>()
             .await
             .map_err(|_| StatusCode::UNPROCESSABLE_ENTITY)?;
-        Ok(Id(ObjectId::from_str(&x).unwrap()))
+
+        if let Ok(id) = ObjectId::from_str(&x) {
+            Ok(Id(id))
+        } else {
+            Err(StatusCode::UNPROCESSABLE_ENTITY)
+        }
     }
 }
 
-pub struct CustomError(mongodb::error::Error);
-
-impl IntoResponse for CustomError {
-    fn into_response(self) -> axum::response::Response {
-        (StatusCode::NOT_FOUND, self.0.to_string()).into_response()
+pub async fn get_all(State(db): State<Client>) -> Result<Json<Vec<Cake>>, StatusCode> {
+    match Cake::get_all(&db).await {
+        Ok(products) => Ok(Json(products)),
+        Err(_) => Err(StatusCode::SERVICE_UNAVAILABLE),
     }
 }
 
-impl<E> From<E> for CustomError
-where
-    E: Into<mongodb::error::Error>,
-{
-    fn from(err: E) -> Self {
-        Self(err.into())
+pub async fn get_one(State(db): State<Client>, Id(id): Id) -> Result<Json<Cake>, StatusCode> {
+    match Cake::get_one(&db, id).await {
+        Ok(product) => Ok(Json(product)),
+        Err(_) => Err(StatusCode::SERVICE_UNAVAILABLE),
     }
-}
-
-pub async fn get_all(State(db): State<Client>) -> Result<Json<Vec<Cake>>, CustomError> {
-    Ok(Json(Cake::get_all(&db).await?))
-}
-
-pub async fn get_one(State(db): State<Client>, Id(id): Id) -> Result<Json<Cake>, CustomError> {
-    Ok(Json(Cake::get_one(&db, id).await?))
 }
 
 pub async fn update_one(

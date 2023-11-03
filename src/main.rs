@@ -17,7 +17,7 @@ const DATABASE_NAME: &str = "inventorydb";
 const PRODUCT_COLLECTION_NAME: &str = "inventory";
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     dotenv().ok();
@@ -26,23 +26,25 @@ async fn main() {
 
     tracing::debug!("listening on {}", addr);
 
-    let app = app().await.fallback(handler_404);
+    let app = app().await?;
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
-        .await
-        .unwrap();
+        .await?;
+
+    Ok(())
 }
 
-async fn setup_db() -> Client {
+async fn setup_db() -> anyhow::Result<Client> {
     let client_options =
         ClientOptions::parse(std::env::var("MONGODB_URL").expect("MONGODB_URL is not set"));
-    Client::with_options(client_options.await.unwrap()).unwrap()
+    let client = Client::with_options(client_options.await?)?;
+    Ok(client)
 }
 
-async fn app() -> Router {
+async fn app() -> anyhow::Result<Router> {
     let db = setup_db().await;
-    Router::new()
+    let router = Router::new()
         .route(
             "/products",
             get(handlers::cakes::get_all).post(handlers::cakes::add_one),
@@ -54,7 +56,10 @@ async fn app() -> Router {
                 .delete(handlers::cakes::delete_one),
         )
         .nest_service("/styles.css", ServeDir::new("assets/styles.css").clone())
-        .with_state(db)
+        .with_state(db?)
+        .fallback(handler_404);
+
+    Ok(router)
 }
 
 async fn handler_404() -> impl IntoResponse {
