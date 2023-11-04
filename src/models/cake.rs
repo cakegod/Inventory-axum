@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use futures::StreamExt;
 use mongodb::{bson::doc, bson::oid::ObjectId, Client, Collection};
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,6 @@ pub struct Cake {
     pub price: u32,
     pub in_stock: u32,
     pub url: String,
-    #[serde(skip_deserializing)]
     pub _id: ObjectId,
 }
 
@@ -42,10 +41,14 @@ impl Cake {
 
     pub async fn update_one(db: &Client, id: ObjectId, updated: Self) -> Result<()> {
         // It's easier to replace the entire item instead of updating specific fields...
-        Self::collection(&db)
+        let result = Self::collection(&db)
             .replace_one(doc! {"_id": id}, updated, None)
             .await?;
-        Ok(())
+        if result.modified_count > 0 {
+            Ok(())
+        } else {
+            Err(anyhow!("The document was not modified"))
+        }
     }
 
     pub async fn add_one(db: &Client, product: Self) -> Result<()> {
