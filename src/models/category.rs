@@ -1,8 +1,11 @@
 use mongodb::bson::oid::ObjectId;
+use serde::{Deserialize, Serialize};
 
-struct Category {
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Category {
     name: String,
     description: String,
-    url: String,
-    _id: ObjectId,
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
 }
