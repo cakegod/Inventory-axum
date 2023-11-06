@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use axum::http::HeaderMap;
 use axum::{
     async_trait,
     extract::State,
@@ -55,7 +56,7 @@ pub async fn update_one(
     Form(updated): Form<Cake>,
 ) -> StatusCode {
     match Cake::update_one(&db, id, updated).await {
-        Ok(_) => StatusCode::OK,
+        Ok(_) => StatusCode::NO_CONTENT,
         Err(_) => StatusCode::BAD_REQUEST,
     }
 }
@@ -68,7 +69,7 @@ pub async fn add_one(State(db): State<Client>, Form(product): Form<Cake>) -> Sta
 }
 pub async fn delete_one(State(db): State<Client>, Id(id): Id) -> StatusCode {
     match Cake::delete_one(&db, id).await {
-        Ok(_) => StatusCode::ACCEPTED,
+        Ok(_) => StatusCode::NO_CONTENT,
         Err(_) => StatusCode::BAD_REQUEST,
     }
 }

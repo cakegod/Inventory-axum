@@ -6,14 +6,15 @@ use serde::{Deserialize, Serialize};
 use crate::{DATABASE_NAME, PRODUCT_COLLECTION_NAME};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Cake {
     pub name: String,
     pub description: String,
-    pub category: String,
+    pub category: ObjectId,
     pub price: u32,
-    pub in_stock: u32,
-    pub url: String,
-    pub _id: ObjectId,
+    pub number_in_stock: u32,
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
 }
 
 impl Cake {
@@ -23,7 +24,7 @@ impl Cake {
     }
 
     pub async fn get_all(db: &Client) -> Result<Vec<Self>> {
-        let cursor = Self::collection(&db).find(None, None).await?;
+        let cursor = Self::collection(db).find(None, None).await?;
         let products = cursor
             .map(|product| product.unwrap())
             .collect::<Vec<Self>>()

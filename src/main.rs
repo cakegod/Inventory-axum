@@ -1,20 +1,16 @@
 use std::net::SocketAddr;
 
-use askama_axum::IntoResponse;
 use axum::http::StatusCode;
 use axum::{routing::get, Router};
 use dotenv::dotenv;
 use mongodb::{options::ClientOptions, Client};
 use tower_http::services::ServeDir;
 
-use crate::templates::Template_404;
-
 mod handlers;
 mod models;
-mod templates;
 
-const DATABASE_NAME: &str = "inventorydb";
-const PRODUCT_COLLECTION_NAME: &str = "inventory";
+const DATABASE_NAME: &str = "test";
+const PRODUCT_COLLECTION_NAME: &str = "products";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -57,16 +53,7 @@ async fn app() -> anyhow::Result<Router> {
         )
         .nest_service("/styles.css", ServeDir::new("assets/styles.css").clone())
         .with_state(db?)
-        .fallback(handler_404);
+        .fallback(|| async { StatusCode::NOT_FOUND });
 
     Ok(router)
-}
-
-async fn handler_404() -> impl IntoResponse {
-    (
-        StatusCode::NOT_FOUND,
-        Template_404 {
-            title: "404".to_string(),
-        },
-    )
 }
