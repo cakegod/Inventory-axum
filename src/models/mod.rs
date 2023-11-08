@@ -1,13 +1,5 @@
-use std::str::FromStr;
-
 use anyhow::anyhow;
-use axum::{
-    async_trait,
-    extract::{FromRequestParts, Path},
-    http::request::Parts,
-    http::StatusCode,
-    RequestPartsExt,
-};
+use axum::async_trait;
 use futures::StreamExt;
 use mongodb::{bson::doc, bson::oid::ObjectId, Client};
 use serde::de::DeserializeOwned;
@@ -17,29 +9,6 @@ use crate::DATABASE_NAME;
 
 pub mod category;
 pub mod product;
-
-pub struct Id(pub ObjectId);
-
-#[async_trait]
-impl<S> FromRequestParts<S> for Id
-where
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
-
-    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
-        let Path(x) = parts
-            .extract::<Path<String>>()
-            .await
-            .map_err(|_| StatusCode::UNPROCESSABLE_ENTITY)?;
-
-        if let Ok(id) = ObjectId::from_str(&x) {
-            Ok(Id(id))
-        } else {
-            Err(StatusCode::UNPROCESSABLE_ENTITY)
-        }
-    }
-}
 
 #[async_trait]
 pub trait CRUD: Serialize + DeserializeOwned + Unpin + Send + Sync {
