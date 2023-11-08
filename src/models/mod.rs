@@ -1,14 +1,15 @@
 use std::str::FromStr;
 
 use anyhow::anyhow;
-use axum::extract::{FromRequestParts, Path};
-use axum::http::request::Parts;
-use axum::http::StatusCode;
-use axum::{async_trait, RequestPartsExt};
+use axum::{
+    async_trait,
+    extract::{FromRequestParts, Path},
+    http::request::Parts,
+    http::StatusCode,
+    RequestPartsExt,
+};
 use futures::StreamExt;
-use mongodb::bson::doc;
-use mongodb::bson::oid::ObjectId;
-use mongodb::Client;
+use mongodb::{bson::doc, bson::oid::ObjectId, Client};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 

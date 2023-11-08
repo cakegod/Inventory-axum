@@ -3,9 +3,7 @@ use std::net::SocketAddr;
 use axum::http::StatusCode;
 use axum::{routing::get, Router};
 use dotenv::dotenv;
-use futures::StreamExt;
 use mongodb::{options::ClientOptions, Client};
-use tower_http::services::ServeDir;
 
 mod handlers;
 mod models;
@@ -45,7 +43,6 @@ async fn app() -> anyhow::Result<Router> {
     let router = Router::new()
         .nest("/products", products_route())
         .nest("/categories", categories_route())
-        .nest_service("/styles.css", ServeDir::new("assets/styles.css").clone())
         .with_state(db?)
         .fallback(|| async { StatusCode::NOT_FOUND });
 

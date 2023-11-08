@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, Form, Json, RequestPartsExt};
+use axum::{extract::State, http::StatusCode, Form, Json};
 use mongodb::Client;
 
 use crate::models::product::Product;
