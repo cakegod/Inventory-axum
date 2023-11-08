@@ -1,3 +1,2 @@
-pub mod cakes;
 pub mod categories;
-
+pub mod products;

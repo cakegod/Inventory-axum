@@ -56,13 +56,13 @@ fn products_route() -> Router<Client> {
     Router::new()
         .route(
             "/",
-            get(handlers::cakes::get_all).post(handlers::cakes::add_one),
+            get(handlers::products::get_all).post(handlers::products::add_one),
         )
         .route(
             "/:id",
-            get(handlers::cakes::get_one)
-                .put(handlers::cakes::update_one)
-                .delete(handlers::cakes::delete_one),
+            get(handlers::products::get_one)
+                .put(handlers::products::update_one)
+                .delete(handlers::products::delete_one),
         )
 }
 
