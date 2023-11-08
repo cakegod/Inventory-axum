@@ -16,3 +16,5 @@ tracing-subscriber = "0.3.17"
 tower = "0.4.13"
 dotenv = "0.15.0"
 anyhow = "1.0.75"
+axum-valid = { version = "0.11.0", features = ["into_json", "validify", "basic"], default-features = false }
+validify = "1.0.12"

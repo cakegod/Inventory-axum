@@ -1,10 +1,11 @@
 use mongodb::{bson::doc, bson::oid::ObjectId};
 use serde::{Deserialize, Serialize};
+use validify::Validify;
 
 use crate::models::CRUD;
 use crate::PRODUCT_COLLECTION_NAME;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Validify)]
 #[serde(rename_all = "camelCase")]
 pub struct Product {
     pub name: String,
@@ -21,3 +22,4 @@ impl CRUD for Product {
         PRODUCT_COLLECTION_NAME
     }
 }
+
