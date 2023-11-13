@@ -5,12 +5,9 @@ use axum::{routing::get, Router};
 use dotenv::dotenv;
 use mongodb::{options::ClientOptions, Client};
 
-use crate::handlers::categories::CategoriesHandlers;
-use crate::handlers::products::ProductsHandlers;
-use crate::handlers::RestRoutes;
+use api::{categories::handlers::Categories, products::handlers::Product, rest_routes::RestRoutes};
 
-mod handlers;
-mod models;
+mod api;
 
 const DATABASE_NAME: &str = "test";
 const PRODUCT_COLLECTION_NAME: &str = "products";
@@ -55,28 +52,22 @@ async fn app() -> anyhow::Result<Router> {
 
 fn products_route() -> Router<Client> {
     Router::new()
-        .route(
-            "/",
-            get(ProductsHandlers::get_all).post(ProductsHandlers::add_one),
-        )
+        .route("/", get(Product::get_all).post(Product::add_one))
         .route(
             "/:id",
-            get(ProductsHandlers::get_one)
-                .put(ProductsHandlers::update_one)
-                .delete(ProductsHandlers::delete_one),
+            get(Product::get_one)
+                .put(Product::update_one)
+                .delete(Product::delete_one),
         )
 }
 
 fn categories_route() -> Router<Client> {
     Router::new()
-        .route(
-            "/",
-            get(CategoriesHandlers::get_all).post(CategoriesHandlers::add_one),
-        )
+        .route("/", get(Categories::get_all).post(Categories::add_one))
         .route(
             "/:id",
-            get(CategoriesHandlers::get_one)
-                .put(CategoriesHandlers::update_one)
-                .delete(CategoriesHandlers::delete_one),
+            get(Categories::get_one)
+                .put(Categories::update_one)
+                .delete(Categories::delete_one),
         )
 }
